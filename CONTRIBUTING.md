@@ -1,6 +1,6 @@
 # How to develop on this project
 
-project_name welcomes contributions from the community.
+api_spacex_backend welcomes contributions from the community.
 
 **You need PYTHON3!**
 
@@ -8,9 +8,9 @@ This instructions are for linux base systems. (Linux, MacOS, BSD, etc.)
 ## Setting up your own fork of this repo.
 
 - On github interface click on `Fork` button.
-- Clone your fork of this repo. `git clone git@github.com:YOUR_GIT_USERNAME/project_urlname.git`
-- Enter the directory `cd project_urlname`
-- Add upstream repo `git remote add upstream https://github.com/author_name/project_urlname`
+- Clone your fork of this repo. `git clone git@github.com:YOUR_GIT_USERNAME/api-spacex-backend.git`
+- Enter the directory `cd api-spacex-backend`
+- Add upstream repo `git remote add upstream https://github.com/arthurmde/api-spacex-backend`
 
 ## Setting up your own virtual environment
 

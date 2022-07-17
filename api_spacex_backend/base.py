@@ -1,7 +1,7 @@
 """
-project_name base module.
+api_spacex_backend base module.
 
-This is the principal module of the project_name project.
+This is the principal module of the api_spacex_backend project.
 here you put your main classes and objects.
 
 Be creative! do whatever you want!
@@ -14,4 +14,4 @@ and then choose `flask` as template.
 """
 
 # example constant variable
-NAME = "project_name"
+NAME = "api_spacex_backend"

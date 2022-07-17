@@ -1,5 +1,5 @@
-from project_name.base import NAME
+from api_spacex_backend.base import NAME
 
 
 def test_base():
-    assert NAME == "project_name"
+    assert NAME == "api_spacex_backend"
