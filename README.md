@@ -20,7 +20,7 @@ Blue Onion code challenge by Arthur de Moura Del Esposte
       * password: pw4admin
 * Run the tests: 
 ```bash
-python3 -m unittest tests/*
+python3 -m unittest tests/test_base.py
 ```
 
 ## App Usage
