@@ -12,17 +12,6 @@ services:
       POSTGRES_USER: 'spacex'
       POSTGRES_PASSWORD: 'pw4admin'
 
-  pgadmin:
-    image: 'thajeztah/pgadmin4'
-    container_name: pgadmin
-    ports:
-      - 5050:5050
-    depends_on:
-      - timescaledb
-    environment:
-      PGADMIN_DEFAULT_EMAIL: "spacex@example.com"
-      PGADMIN_DEFAULT_PASSWORD: 'pw4admin'
-
 volumes:
   db-data:
     driver: local
