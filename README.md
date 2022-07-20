@@ -1,85 +1,138 @@
+Blue Onion code challenge by Arthur de Moura Del Esposte
+## Assumptions
 
-# Python Project Template
+REFERENCE: https://geshan.com.np/blog/2020/09/take-home-coding-challenges-outshine-competition/
 
-A low dependency and really simple to start project template for Python Projects.
+* I created a CLI tool to perform the queries
+* I did not remove entries with blank or incomple values. Although they
+  may be considered invalid, there is no specific requirement regarding invalid
+  data in the challenge's description. Incomplete data may be useful in some contexts.
 
-See also 
-- [Flask-Project-Template](https://github.com/rochacbruno/flask-project-template/) for a full feature Flask project including database, API, admin interface, etc.
-- [FastAPI-Project-Template](https://github.com/rochacbruno/fastapi-project-template/) The base to start an openapi project featuring: SQLModel, Typer, FastAPI, JWT Token Auth, Interactive Shell, Management Commands.
+## Solution formulation
 
-### HOW TO USE THIS TEMPLATE
+This solution was created as a Python CLI tool based on the
+[TimescaleDB](https://docs.timescale.com/) and [pyscopg3 lib](https://www.psycopg.org/psycopg3).
 
-> **DO NOT FORK** this is meant to be used from **[Use this template](https://github.com/rochacbruno/python-project-template/generate)** feature.
+The details of each task is described below.
+### Task 1
+> Stand up your favorite kind of database (and ideally it would be in a form that would be runnable by us, via something like docker-compose).
 
-1. Click on **[Use this template](https://github.com/rochacbruno/python-project-template/generate)**
-3. Give a name to your project  
-   (e.g. `my_awesome_project` recommendation is to use all lowercase and underscores separation for repo names.)
-3. Wait until the first run of CI finishes  
-   (Github Actions will process the template and commit to your new repo)
-4. If you want [codecov](https://about.codecov.io/sign-up/) Reports and Automatic Release to [PyPI](https://pypi.org)  
-  On the new repository `settings->secrets` add your `PIPY_API_TOKEN` and `CODECOV_TOKEN` (get the tokens on respective websites)
-4. Read the file [CONTRIBUTING.md](CONTRIBUTING.md)
-5. Then clone your new project and happy coding!
+This project uses [TimescaleDB](https://docs.timescale.com/),
+a database that extends PostreSQL's capabilities to provide optimizations and
+special features for time-series data.
+It offers an abstraction layer called Hypertables to insert and query for
+time-series data through SQL while hiding the underlying details on how data is
+partitioned and stored.
 
-> **NOTE**: **WAIT** until first CI run on github actions before cloning your new project.
+One may run the TimescaleDB service through docker-compose available in this
+repository.
 
-### What is included on this template?
+### Task 2
+>Write code (ideally in Python) to import the relevant fields in starlink_historical_data.json as a time series. The relevant fields are: - spaceTrack.creation_date (represents the time that the lat/lon records were recorded) - longitude - latitude - id (this is the starlink satellite id).
 
-- 🖼️ Templates for starting multiple application types:
-  * **Basic low dependency** Python program (default) [use this template](https://github.com/rochacbruno/python-project-template/generate)
-  * **Flask** with database, admin interface, restapi and authentication [use this template](https://github.com/rochacbruno/flask-project-template/generate).
-  **or Run `make init` after cloning to generate a new project based on a template.**
-- 📦 A basic [setup.py](setup.py) file to provide installation, packaging and distribution for your project.  
-  Template uses setuptools because it's the de-facto standard for Python packages, you can run `make switch-to-poetry` later if you want.
-- 🤖 A [Makefile](Makefile) with the most useful commands to install, test, lint, format and release your project.
-- 📃 Documentation structure using [mkdocs](http://www.mkdocs.org)
-- 💬 Auto generation of change log using **gitchangelog** to keep a HISTORY.md file automatically based on your commit history on every release.
-- 🐋 A simple [Containerfile](Containerfile) to build a container image for your project.  
-  `Containerfile` is a more open standard for building container images than Dockerfile, you can use buildah or docker with this file.
-- 🧪 Testing structure using [pytest](https://docs.pytest.org/en/latest/)
-- ✅ Code linting using [flake8](https://flake8.pycqa.org/en/latest/)
-- 📊 Code coverage reports using [codecov](https://about.codecov.io/sign-up/)
-- 🛳️ Automatic release to [PyPI](https://pypi.org) using [twine](https://twine.readthedocs.io/en/latest/) and github actions.
-- 🎯 Entry points to execute your program using `python -m <api_spacex_backend>` or `$ api_spacex_backend` with basic CLI argument parsing.
-- 🔄 Continuous integration using [Github Actions](.github/workflows/) with jobs to lint, test and release your project on Linux, Mac and Windows environments.
+To import the relevant data to the database, the system relies on
+[Postgres' Copy](https://www.postgresql.org/docs/current/sql-copy.html)
+protocol which is one of the most efficient way to load data
+into the database. The script will
+bulk insert the data extracted from the json file, organized as a list of tuples,
+to the hypertable in a single few operations.
 
-> Curious about architectural decisions on this template? read [ABOUT_THIS_TEMPLATE.md](ABOUT_THIS_TEMPLATE.md)  
-> If you want to contribute to this template please open an [issue](https://github.com/rochacbruno/python-project-template/issues) or fork and send a PULL REQUEST.
+### Task 3
+> Write logic to fetch/query the last known position of a satellite (by id), given a time T. Include this query in your README or somewhere in the project submission
 
-[❤️ Sponsor this project](https://github.com/sponsors/rochacbruno/)
-
-<!--  DELETE THE LINES ABOVE THIS AND WRITE YOUR PROJECT README BELOW -->
-
----
-# api_spacex_backend
-
-[![codecov](https://codecov.io/gh/arthurmde/api-spacex-backend/branch/main/graph/badge.svg?token=api-spacex-backend_token_here)](https://codecov.io/gh/arthurmde/api-spacex-backend)
-[![CI](https://github.com/arthurmde/api-spacex-backend/actions/workflows/main.yml/badge.svg)](https://github.com/arthurmde/api-spacex-backend/actions/workflows/main.yml)
-
-Awesome api_spacex_backend created by arthurmde
-
-## Install it from PyPI
-
-```bash
-pip install api_spacex_backend
+To allow users to query by the last known position of a satellite 
+given a time T, the system will perform the following SQL query:
+```sql
+SELECT * FROM satellite_positions
+WHERE satellite_id = '%s' AND time <= '%s'
+ORDER BY time DESC
+LIMIT 1;
 ```
 
-## Usage
+The above query has two params, represented by `%s`, which will be replaced by
+the informed satellite id and the given time in this order. For more details,
+check the implementation of `SatellitePosition.last_position_for` static method
+available in the [base module](api_spacex_backend/base.py).
 
-```py
-from api_spacex_backend import BaseClass
-from api_spacex_backend import base_function
+You may perform the query above through the CLI:
 
-BaseClass().base_method()
-base_function()
+### Task 4 (Bonus)
+> Write some logic (via a combination of query + application logic, most likely) to fetch from the database the closest satellite at a given time T, and a given a position on a globe as a (latitude, longitude) coordinate.
+
+To allow searching for the closest satellite at a given time T, and a given coordinate, I created a SQL query that uses aggregation functions such as
+[Timescale's last function](https://docs.timescale.com/api/latest/hyperfunctions/last/#last) and MAX:
+```sql
+SELECT MAX(time) as max_time,
+       satellite_id,
+       last(latitude, time) as latitude,
+       last(longitude, time) as longitude
+FROM satellite_positions
+WHERE time <= '%s' AND latitude IS NOT NULL AND longitude IS NOT NULL
+GROUP BY satellite_id
+ORDER BY max_time DESC;
 ```
 
+Notice that this query removes entries with empty values for latitude or longitude.
+This is important since we need a complete position to compare with the given location
+in order to find the closest satellite. Therefore, this query considers the last
+valid position for satellities at the given time.
+
+With the query results, the system runs an algorithm to find the closest satellite to the
+informed location based on [haversine function](https://github.com/mapado/haversine).
+For more details, check the implementation of `SatellitePosition.closest_satellite` 
+in [base module](api_spacex_backend/base.py).
+## Setup
+
+
+* Install python >= 3.10 in your machine to run the CLI application
+* Install requirements: `pip install -r requirements.txt`
+* Install [Docker](https://docs.docker.com/engine/install/) and [Docker-Compose](https://docs.docker.com/compose/) to run TimescaleDB
+* Run container services: `docker-compose up -d`. This command will Timescaledb in a docker container sharing the port 5432 with your host.
+  * If you want to access the database through the container, you can use the following
+    authentication information:
+      * user: postgres
+      * password: pw4admin
+* Run the tests: 
 ```bash
-$ python -m api_spacex_backend
+python3 -m unittest tests/*
+```
+
+## App Usage
+
+The CLI application offers two possibilites:
+#### last_position
+
+You can query for the last position of a sattelite at a given time. If no
+time reference is provided, the system will consider the most recent data
+available on the database. The following positional arguments must be provided:
+* function_name
+* satellite id
+* time in ISO format (optional)
+
+```bash
+python3 api_spacex_backend last_position 5eed7715096e59000698572c 2021-01-26T06:26:10
+
 #or
-$ api_spacex_backend
+python3 api_spacex_backend last_position 5eed7715096e59000698572c
 ```
 
-## Development
+The satellite's position will be printed to the STOUD
 
-Read the [CONTRIBUTING.md](CONTRIBUTING.md) file.
+
+#### closest_satellite
+
+You can query for closest satellite of a given position on earth at a given time.
+If no time reference is provided, the system will consider the most recent data
+available on the database. The following positional arguments must be provided:
+* function_name
+* latitude
+* longitude
+* time in ISO format (optional)
+
+```bash
+python3 api_spacex_backend closest_satellite -40.4098530291677 108 2020-05-19T06:27:10
+#or
+python3 api_spacex_backend closest_satellite -40.4098530291677 108
+```
+
+The satellite's information will be printed to the STOUD

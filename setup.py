@@ -32,7 +32,7 @@ def read_requirements(path):
 setup(
     name="api_spacex_backend",
     version=read("api_spacex_backend", "VERSION"),
-    description="Awesome api_spacex_backend created by arthurmde",
+    description="Blue Onion code challenge by Arthur de Moura Del Esposte",
     url="https://github.com/arthurmde/api-spacex-backend/",
     long_description=read("README.md"),
     long_description_content_type="text/markdown",
