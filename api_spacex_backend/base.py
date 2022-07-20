@@ -8,9 +8,8 @@ import os
 import json
 from datetime import datetime
 
-# example constant variable
-NAME = "api_spacex_backend"
 CONNECTION = "postgres://spacex:pw4admin@localhost:5432/spacex"
+TABLE_NAME = 'satellite_positions'
 
 class DataImporter:
     """This class provides static methods to parse starlink_historical_data.json
@@ -51,8 +50,6 @@ class DatabaseSetup:
     """This class provides static methods to handle the basic database setup,
     including schema definition and data inserting."""
 
-    TABLE_NAME = 'satellite_positions'
-
     @staticmethod
     def setup_tables():
         """This method creates the table to store the positions of Starlink's
@@ -63,9 +60,9 @@ class DatabaseSetup:
                                 satellite_id TEXT,
                                 latitude DOUBLE PRECISION,
                                 longitude DOUBLE PRECISION
-                              );""" % (DatabaseSetup.TABLE_NAME)
+                              );""" % (TABLE_NAME)
 
-        create_satellite_positions_hypertable = "SELECT create_hypertable('%s', 'time');" % (DatabaseSetup.TABLE_NAME)
+        create_satellite_positions_hypertable = "SELECT create_hypertable('%s', 'time');" % (TABLE_NAME)
 
         with psycopg.connect(CONNECTION) as conn:
             with conn.cursor() as curs:
@@ -79,7 +76,7 @@ class DatabaseSetup:
     @staticmethod
     def drop_tables():
         """This method drops the existing tables and their data"""
-        drop_table_query = "DROP TABLE %s;" % (DatabaseSetup.TABLE_NAME)
+        drop_table_query = "DROP TABLE %s;" % (TABLE_NAME)
         with psycopg.connect(CONNECTION) as conn:
             with conn.cursor() as curs:
                 try:
@@ -113,9 +110,47 @@ class DatabaseSetup:
         """This utility methods returns the number of entries in satellite_positions
         table"""
         entries_count = 0
-        db_entries_count_query = "SELECT COUNT(*) FROM %s;" % (DatabaseSetup.TABLE_NAME)
+        db_entries_count_query = "SELECT COUNT(*) FROM %s;" % (TABLE_NAME)
         with psycopg.connect(CONNECTION) as conn:
             with conn.cursor() as curs:
                 entries_count = curs.execute(db_entries_count_query).fetchone()[0]
 
         return entries_count
+
+class SatellitePosition:
+    """This class provides an interface to query the satellite_positions table."""
+
+    @staticmethod
+    def print_time_data(time_data):
+        """This method receives a tuple with positional data:
+        * The time in which the position has been recorded
+        * The satellite id
+        * The latitude
+        * The longitude
+        """
+        time, satellite_id, latitude, longitude = time_data
+
+        print(f'The position of the Satellite {satellite_id} at {time} is:')
+        print(f'--> Latitude => {latitude}')
+        print(f'--> Longitude => {longitude}')
+
+    @staticmethod
+    def last_position_for(satellite_id, time=None):
+        """Query for the last position of the given satellite given a time reference.
+        If no time reference is provided, the method will query for the
+        most recent position of the satellite"""
+
+        if time is None:
+            time = datetime.now()
+        
+        query = """
+                    SELECT * FROM satellite_positions
+                    WHERE satellite_id = '%s' AND time <= '%s'
+                    ORDER BY time DESC
+                    LIMIT 1;
+                """ % (satellite_id, time)
+
+        result = None
+        with psycopg.connect(CONNECTION) as conn:
+            with conn.cursor() as curs:
+                return curs.execute(query).fetchone()

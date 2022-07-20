@@ -1,8 +1,9 @@
 import unittest
 import psycopg
 import api_spacex_backend.base
-from api_spacex_backend.base import DataImporter, DatabaseSetup
 
+from datetime import datetime
+from api_spacex_backend.base import DataImporter, DatabaseSetup, SatellitePosition
 
 class TestDataImporter(unittest.TestCase):
     def test_parse_json(self):
@@ -50,3 +51,23 @@ class TestDatabaseSetup(unittest.TestCase):
         self.assertEqual(DatabaseSetup.count_entries(), 3141, "Table is populated")
 
         self.assertFalse(DatabaseSetup.populate(), "It does not break when calling the method twice")
+
+class TestSatellitePosition(unittest.TestCase):
+    def setUp(self):
+        DatabaseSetup.setup_tables()
+
+    def test_last_position_for(self):
+        DatabaseSetup.populate()
+
+        satellite_id = '5f487be7d76203000692e59f'
+        time_reference = '2021-01-26T05:00:00'
+
+        # Query with a reference time
+        result = SatellitePosition.last_position_for(satellite_id, time_reference)
+        expected_result = (datetime.fromisoformat("2021-01-21T06:26:10"), '5f487be7d76203000692e59f', -40.4098530291677, 108)
+        self.assertEqual(result, expected_result, "Query works with a specific time reference")
+
+        # Query without a reference value
+        result = SatellitePosition.last_position_for(satellite_id)
+        expected_result = (datetime.fromisoformat("2021-01-26T14:16:09"), '5f487be7d76203000692e59f', -34.47530939181558, 161.0)
+        self.assertEqual(result, expected_result, "Query works without a specific time reference")
