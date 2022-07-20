@@ -1,8 +1,6 @@
 Blue Onion code challenge by Arthur de Moura Del Esposte
 ## Assumptions
 
-REFERENCE: https://geshan.com.np/blog/2020/09/take-home-coding-challenges-outshine-competition/
-
 * I created a CLI tool to perform the queries
 * I did not remove entries with blank or incomplete values. Although they
   may be considered invalid, there is no specific requirement regarding invalid
@@ -10,12 +8,66 @@ REFERENCE: https://geshan.com.np/blog/2020/09/take-home-coding-challenges-outshi
 * The CLI app does not handle wrong inputs and other edge cases that
   are out of the scope of this challenge
 
+## Setup
+
+* Install python >= 3.10 in your machine to run the CLI application
+* Install requirements: `pip install -r requirements.txt`
+* Install [Docker](https://docs.docker.com/engine/install/) and [Docker-Compose](https://docs.docker.com/compose/) to run TimescaleDB
+* Run container services: `docker-compose up -d`. This command will Timescaledb in a docker container sharing the port 5432 with your host.
+  * If you want to access the database through the container, you can use the following
+    authentication information:
+      * user: postgres
+      * password: pw4admin
+* Run the tests: 
+```bash
+python3 -m unittest tests/*
+```
+
+## App Usage
+
+The CLI application offers two possibilites:
+#### last_position
+
+You can query for the last position of a sattelite at a given time. If no
+time reference is provided, the system will consider the most recent data
+available on the database. The following positional arguments must be provided:
+* function_name
+* satellite id
+* time in ISO format (optional)
+
+```bash
+python3 api_spacex_backend last_position 5eed7715096e59000698572c 2021-01-26T02:30:00
+
+#or
+python3 api_spacex_backend last_position 5eed7715096e59000698572c
+```
+
+The satellite's position will be printed to the STOUD
+
+
+#### closest_satellite
+
+You can query for closest satellite of a given position on earth at a given time.
+If no time reference is provided, the system will consider the most recent data
+available on the database. The following positional arguments must be provided:
+* function_name
+* latitude
+* longitude
+* time in ISO format (optional)
+
+```bash
+python3 api_spacex_backend closest_satellite -40.4098530291677 108 2020-05-19T06:27:10
+#or
+python3 api_spacex_backend closest_satellite -40.4098530291677 108
+```
+
+The satellite's information will be printed to the STOUD
 ## Solution formulation
 
 This solution was created as a Python CLI tool based on the
 [TimescaleDB](https://docs.timescale.com/) and [pyscopg3 lib](https://www.psycopg.org/psycopg3).
 
-The details of each task is described below.
+The details of each task are described below.
 ### Task 1
 > Stand up your favorite kind of database (and ideally it would be in a form that would be runnable by us, via something like docker-compose).
 
@@ -81,58 +133,3 @@ With the query results, the system runs an algorithm to find the closest satelli
 informed location based on [haversine function](https://github.com/mapado/haversine).
 For more details, check the implementation of `SatellitePosition.closest_satellite` 
 in [base module](api_spacex_backend/base.py).
-
-## Setup
-
-* Install python >= 3.10 in your machine to run the CLI application
-* Install requirements: `pip install -r requirements.txt`
-* Install [Docker](https://docs.docker.com/engine/install/) and [Docker-Compose](https://docs.docker.com/compose/) to run TimescaleDB
-* Run container services: `docker-compose up -d`. This command will Timescaledb in a docker container sharing the port 5432 with your host.
-  * If you want to access the database through the container, you can use the following
-    authentication information:
-      * user: postgres
-      * password: pw4admin
-* Run the tests: 
-```bash
-python3 -m unittest tests/*
-```
-
-## App Usage
-
-The CLI application offers two possibilites:
-#### last_position
-
-You can query for the last position of a sattelite at a given time. If no
-time reference is provided, the system will consider the most recent data
-available on the database. The following positional arguments must be provided:
-* function_name
-* satellite id
-* time in ISO format (optional)
-
-```bash
-python3 api_spacex_backend last_position 5eed7715096e59000698572c 2021-01-26T02:30:00
-
-#or
-python3 api_spacex_backend last_position 5eed7715096e59000698572c
-```
-
-The satellite's position will be printed to the STOUD
-
-
-#### closest_satellite
-
-You can query for closest satellite of a given position on earth at a given time.
-If no time reference is provided, the system will consider the most recent data
-available on the database. The following positional arguments must be provided:
-* function_name
-* latitude
-* longitude
-* time in ISO format (optional)
-
-```bash
-python3 api_spacex_backend closest_satellite -40.4098530291677 108 2020-05-19T06:27:10
-#or
-python3 api_spacex_backend closest_satellite -40.4098530291677 108
-```
-
-The satellite's information will be printed to the STOUD
