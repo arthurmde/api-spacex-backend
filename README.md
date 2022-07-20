@@ -10,10 +10,10 @@ Blue Onion code challenge by Arthur de Moura Del Esposte
 
 ## Setup
 
-* Install python >= 3.10 in your machine to run the CLI application
-* Install requirements: `pip install -r requirements.txt`
+* Install python >= 3.10 on your machine to run the CLI application
+* Install dependencies: `pip install -r requirements.txt`
 * Install [Docker](https://docs.docker.com/engine/install/) and [Docker-Compose](https://docs.docker.com/compose/) to run TimescaleDB
-* Run container services: `docker-compose up -d`. This command will Timescaledb in a docker container sharing the port 5432 with your host.
+* Run container services: `docker-compose up -d`. This command will run Timescaledb in a docker container sharing the port 5432 with your host.
   * If you want to access the database through the container, you can use the following
     authentication information:
       * user: postgres
@@ -25,10 +25,10 @@ python3 -m unittest tests/*
 
 ## App Usage
 
-The CLI application offers two possibilites:
+The CLI application offers two possibilities:
 #### last_position
 
-You can query for the last position of a sattelite at a given time. If no
+You can query for the last position of a satellite at a given time. If no
 time reference is provided, the system will consider the most recent data
 available on the database. The following positional arguments must be provided:
 * function_name
@@ -37,17 +37,15 @@ available on the database. The following positional arguments must be provided:
 
 ```bash
 python3 api_spacex_backend last_position 5eed7715096e59000698572c 2021-01-26T02:30:00
-
 #or
 python3 api_spacex_backend last_position 5eed7715096e59000698572c
 ```
 
-The satellite's position will be printed to the STOUD
-
+The satellite's position will be printed to the STDOUT
 
 #### closest_satellite
 
-You can query for closest satellite of a given position on earth at a given time.
+You can query for the closest satellite of a given position on earth at a given time.
 If no time reference is provided, the system will consider the most recent data
 available on the database. The following positional arguments must be provided:
 * function_name
@@ -61,7 +59,7 @@ python3 api_spacex_backend closest_satellite -40.4098530291677 108 2020-05-19T06
 python3 api_spacex_backend closest_satellite -40.4098530291677 108
 ```
 
-The satellite's information will be printed to the STOUD
+The satellite's information will be printed to the STDOUT
 ## Solution formulation
 
 This solution was created as a Python CLI tool based on the
@@ -86,10 +84,10 @@ repository.
 
 To import the relevant data to the database, the system relies on
 [Postgres' Copy](https://www.postgresql.org/docs/current/sql-copy.html)
-protocol which is one of the most efficient way to load data
+protocol which is one of the most efficient ways to load data
 into the database. The script will
-bulk insert the data extracted from the json file, organized as a list of tuples,
-to the hypertable in a single few operations.
+bulk insert the data extracted from the JSON file, organized as a list of tuples,
+to the Hypertable in a single few operations.
 
 ### Task 3
 > Write logic to fetch/query the last known position of a satellite (by id), given a time T. Include this query in your README or somewhere in the project submission
@@ -127,9 +125,9 @@ ORDER BY max_time DESC;
 Notice that this query removes entries with empty values for latitude or longitude.
 This is important since we need a complete position to compare with the given location
 in order to find the closest satellite. Therefore, this query considers the last
-valid position for satellities at the given time.
+valid position for satellites at the given time.
 
 With the query results, the system runs an algorithm to find the closest satellite to the
 informed location based on [haversine function](https://github.com/mapado/haversine).
 For more details, check the implementation of `SatellitePosition.closest_satellite` 
-in [base module](api_spacex_backend/base.py).
+in the [base module](api_spacex_backend/base.py).
