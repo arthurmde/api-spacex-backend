@@ -1,6 +1,7 @@
-import unittest
-import psycopg
 import api_spacex_backend.base
+import math
+import psycopg
+import unittest
 
 from datetime import datetime
 from api_spacex_backend.base import DataImporter, DatabaseSetup, SatellitePosition
@@ -71,3 +72,16 @@ class TestSatellitePosition(unittest.TestCase):
         result = SatellitePosition.last_position_for(satellite_id)
         expected_result = (datetime.fromisoformat("2021-01-26T14:16:09"), '5f487be7d76203000692e59f', -34.47530939181558, 161.0)
         self.assertEqual(result, expected_result, "Query works without a specific time reference")
+
+    def test_closest_satellite(self):
+        DatabaseSetup.populate()
+
+        latitude = -40.4098530291677
+        longitude = 108
+        time_reference = '2020-05-19T06:27:10'
+
+        # Query with a reference time
+        satellite, distance = SatellitePosition.closest_satellite(latitude, longitude, time_reference)
+        expected_satellite = (datetime.fromisoformat('2020-05-19T06:26:10'), '60106f20e900d60006e32cc3', 5.423581610589942, 2.0)
+        self.assertEqual(satellite, expected_satellite, "Returned the expected satellite")
+        self.assertEqual(math.trunc(distance), math.trunc(11750.732879114075), "Returned the expected distance")

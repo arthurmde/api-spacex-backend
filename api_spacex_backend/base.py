@@ -7,6 +7,7 @@ import psycopg
 import os
 import json
 from datetime import datetime
+from haversine import haversine
 
 CONNECTION = "postgres://spacex:pw4admin@localhost:5432/spacex"
 TABLE_NAME = 'satellite_positions'
@@ -142,7 +143,7 @@ class SatellitePosition:
 
         if time is None:
             time = datetime.now()
-        
+
         query = """
                     SELECT * FROM satellite_positions
                     WHERE satellite_id = '%s' AND time <= '%s'
@@ -154,3 +155,43 @@ class SatellitePosition:
         with psycopg.connect(CONNECTION) as conn:
             with conn.cursor() as curs:
                 return curs.execute(query).fetchone()
+
+    @staticmethod
+    def closest_satellite(latitude, longitude, time=None):
+        """This method returns the closest satellite of a given position on earth
+        at an specific time.
+        If no time reference is provided, the method will consider the most recent
+        information."""
+
+        if time is None:
+            time = datetime.now()
+
+        # Take advantage of Timescale's last funciton
+        query = """
+                    SELECT MAX(time) as max_time,
+                            satellite_id,
+                            last(latitude, time) as latitude,
+                            last(longitude, time) as longitude
+                    FROM satellite_positions
+                    WHERE time <= '%s' AND latitude IS NOT NULL AND longitude IS NOT NULL
+                    GROUP BY satellite_id
+                    ORDER BY max_time DESC;
+                """ % (time)
+
+        result = None
+        with psycopg.connect(CONNECTION) as conn:
+            with conn.cursor() as curs:
+                result = curs.execute(query).fetchall()
+
+        # Find the closest satellite to the given place
+        informed_place = (latitude, longitude)
+        closest = None
+        min_distance = None
+        for satellite in result:
+            satellite_position = (satellite[2], satellite[3])
+            distance = haversine(informed_place, satellite_position)
+            if min_distance == None or min_distance < distance:
+                min_distance = distance
+                closest = satellite
+
+        return closest, min_distance
