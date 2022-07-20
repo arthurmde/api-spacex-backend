@@ -129,6 +129,10 @@ class SatellitePosition:
         * The latitude
         * The longitude
         """
+        if(time_data == None):
+            print("No results found")
+            return
+
         time, satellite_id, latitude, longitude = time_data
 
         print(f'The position of the Satellite {satellite_id} at {time} is:')

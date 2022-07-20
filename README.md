@@ -4,9 +4,11 @@ Blue Onion code challenge by Arthur de Moura Del Esposte
 REFERENCE: https://geshan.com.np/blog/2020/09/take-home-coding-challenges-outshine-competition/
 
 * I created a CLI tool to perform the queries
-* I did not remove entries with blank or incomple values. Although they
+* I did not remove entries with blank or incomplete values. Although they
   may be considered invalid, there is no specific requirement regarding invalid
   data in the challenge's description. Incomplete data may be useful in some contexts.
+* The CLI app does not handle wrong inputs and other edge cases that
+  are out of the scope of this challenge
 
 ## Solution formulation
 
@@ -54,8 +56,6 @@ the informed satellite id and the given time in this order. For more details,
 check the implementation of `SatellitePosition.last_position_for` static method
 available in the [base module](api_spacex_backend/base.py).
 
-You may perform the query above through the CLI:
-
 ### Task 4 (Bonus)
 > Write some logic (via a combination of query + application logic, most likely) to fetch from the database the closest satellite at a given time T, and a given a position on a globe as a (latitude, longitude) coordinate.
 
@@ -81,8 +81,8 @@ With the query results, the system runs an algorithm to find the closest satelli
 informed location based on [haversine function](https://github.com/mapado/haversine).
 For more details, check the implementation of `SatellitePosition.closest_satellite` 
 in [base module](api_spacex_backend/base.py).
-## Setup
 
+## Setup
 
 * Install python >= 3.10 in your machine to run the CLI application
 * Install requirements: `pip install -r requirements.txt`
@@ -110,7 +110,7 @@ available on the database. The following positional arguments must be provided:
 * time in ISO format (optional)
 
 ```bash
-python3 api_spacex_backend last_position 5eed7715096e59000698572c 2021-01-26T06:26:10
+python3 api_spacex_backend last_position 5eed7715096e59000698572c 2021-01-26T02:30:00
 
 #or
 python3 api_spacex_backend last_position 5eed7715096e59000698572c
